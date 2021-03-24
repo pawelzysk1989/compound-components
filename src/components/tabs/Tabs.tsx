@@ -1,64 +1,50 @@
-import React, { useState, ReactElement, PropsWithChildren } from "react";
+import React, { useState, useMemo, ReactElement, memo } from "react";
+import { validateChildren } from "./helpers";
+import { TabProps } from "./Tab";
 
 interface TabsProps {
   children: ReactElement<TabProps>[];
 }
 
-interface TabProps {
-  children: [ReactElement, ReactElement];
-  disabled?: boolean;
+export interface TabContextProps {
+  tabIndex: number;
+  selectedTab: number;
+  setSelectedTab: (tabIndex: number) => void;
 }
 
-interface TabLabelContext {
-  isSelected: boolean;
-  onLabelClick: () => void;
-}
+export const TabContext = React.createContext<TabContextProps | null>(null);
 
-const LabelContext = React.createContext<TabLabelContext | null>(null);
-
-export default function Tabs({ children }: TabsProps) {
+function Tabs({ children }: TabsProps) {
   const [selectedTab, setSelectedTab] = useState(0);
+  useMemo(() => validateChildren(children), [children]);
+
+  const labels = children.map((tab, tabIndex) => (
+    <TabContext.Provider
+      key={tabIndex}
+      value={{
+        tabIndex,
+        selectedTab,
+        setSelectedTab,
+      }}
+    >
+      {tab.props.children[0]}
+    </TabContext.Provider>
+  ));
+
+  const tabs = children
+    .map((tab, tabIndex) => (
+      <div key={tabIndex} className="tab-content">
+        {tab.props.children[1]}
+      </div>
+    ))
+    .filter((_, tabIndex) => tabIndex === selectedTab);
 
   return (
     <div className="tabs-group">
-      <div className="tab-labels">
-        {children.map((tab, tabIndex) => (
-          <LabelContext.Provider
-            value={{
-              isSelected: selectedTab === tabIndex,
-              onLabelClick: () => setSelectedTab(tabIndex),
-            }}
-          >
-            {tab.props.children[0]}
-          </LabelContext.Provider>
-        ))}
-      </div>
-      <div className="tab-content">
-        {children
-          .map((tab) => tab.props.children[1])
-          .filter((_, tabIndex) => tabIndex === selectedTab)}
-      </div>
+      <div className="tab-labels">{labels}</div>
+      <div className="tab-content">{tabs}</div>
     </div>
   );
 }
 
-export function Tab({ children }: TabProps) {
-  return <div>{children}</div>;
-}
-
-interface LabelProps {}
-
-export function Label({ children }: PropsWithChildren<LabelProps>) {
-  const labelContext = React.useContext(LabelContext);
-  return (
-    <div onClick={labelContext?.onLabelClick}>
-      {labelContext?.isSelected ? <strong>{children}</strong> : children}
-    </div>
-  );
-}
-
-interface ContentProps {}
-
-export function Content({ children }: PropsWithChildren<ContentProps>) {
-  return <div>{children}</div>;
-}
+export default memo(Tabs);

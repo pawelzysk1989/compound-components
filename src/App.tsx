@@ -6,7 +6,7 @@ function App() {
   return (
     <Tabs>
       <Tab>
-        <Tab.Label>Tab 1</Tab.Label>
+        <Tab.Label>{({ tabIndex }) => <div>Tab {tabIndex + 1}</div>}</Tab.Label>
         <Tab.Content>content 1</Tab.Content>
       </Tab>
       <Tab>

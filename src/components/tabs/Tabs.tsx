@@ -1,3 +1,4 @@
+import { LabelGroupWrapper } from "components/styles";
 import React, { useState, useMemo, ReactElement, memo } from "react";
 import { validateChildren } from "./helpers";
 import { TabProps } from "./Tab";
@@ -9,6 +10,7 @@ interface TabsProps {
 export interface TabContextProps {
   tabIndex: number;
   selectedTab: number;
+  disabled?: boolean;
   setSelectedTab: (tabIndex: number) => void;
 }
 
@@ -25,6 +27,7 @@ function Tabs({ children }: TabsProps) {
         tabIndex,
         selectedTab,
         setSelectedTab,
+        disabled: tab.props.disabled,
       }}
     >
       {tab.props.children[0]}
@@ -41,7 +44,7 @@ function Tabs({ children }: TabsProps) {
 
   return (
     <div className="tabs-group">
-      <div className="tab-labels">{labels}</div>
+      <LabelGroupWrapper>{labels}</LabelGroupWrapper>
       <div className="tab-content">{tabs}</div>
     </div>
   );
